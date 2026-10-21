@@ -18,7 +18,10 @@ const maxUploadBytes = Number(process.env.MAX_UPLOAD_MB ?? 10) * 1024 * 1024
 const jwtSecret = process.env.JWT_SECRET
 if (!jwtSecret) throw new Error('JWT_SECRET must be set before starting the API.')
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL })
+const pool = new Pool({ 
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
+})
 await mkdir(uploadDirectory, { recursive: true })
 
 app.use(helmet())

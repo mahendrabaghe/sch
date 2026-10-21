@@ -1,8 +1,8 @@
 import { useState, type FormEvent } from 'react'
-import { ChevronRight, GraduationCap } from 'lucide-react'
+import { ArrowRight, CheckCircle2, ChevronRight, Sparkles } from 'lucide-react'
+import type { Role } from './types'
 
-type Role = 'Student' | 'Teacher' | 'Admin'
-type LoginPageProps = {
+interface LoginPageProps {
   signIn: (identifier: string, password: string) => Promise<void>
   enterDemo: (role: Role) => void
 }
@@ -15,11 +15,12 @@ export default function LoginPage({ signIn, enterDemo }: LoginPageProps) {
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
 
-  async function submit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setError('')
     setMessage('')
     setLoading(true)
+
     try {
       if (forgot) {
         const api = import.meta.env.VITE_API_URL ?? 'http://localhost:4000/api'
@@ -28,103 +29,197 @@ export default function LoginPage({ signIn, enterDemo }: LoginPageProps) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ identifier }),
         })
-        if (!response.ok) throw new Error('Could not send reset instructions. Please try again.')
-        setMessage('If that account exists, reset instructions will be sent.')
+        if (!response.ok) throw new Error('Could not send reset instructions. Please check the ID or email.')
+        setMessage('If that account exists, reset instructions have been dispatched.')
       } else {
         await signIn(identifier, password)
       }
-    } catch (submissionError) {
-      setError(submissionError instanceof Error ? submissionError.message : 'Something went wrong.')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Authentication failed. Please verify credentials.')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <main className="login-screen">
-      <section className="login-side-art">
-        <a className="brand login-brand" href="#login">
-          <span className="brand-mark"><GraduationCap size={22} /></span>
-          <span className="brand-copy"><strong>campus</strong><small>LEARNING, TOGETHER</small></span>
-        </a>
-        <div className="login-art-copy">
-          <span className="welcome-kicker">SUNRISE PUBLIC SCHOOL</span>
-          <h1>Curiosity looks<br />good on you.</h1>
-          <p>Your school day, a little more connected.</p>
+    <div className="login-container">
+      {/* Left Showcase Banner */}
+      <section className="login-showcase">
+        <div className="showcase-glow-circle" />
+        <div className="showcase-glow-bottom" />
+
+        <div className="login-brand-header">
+          <div className="login-crest">N</div>
+          <div className="login-brand-text">
+            <h1>New Ellinium School</h1>
+            <p>Excellence in Learning · Est. 2026</p>
+          </div>
         </div>
-        <div className="login-illustration" aria-hidden="true">
-          <span className="login-orbit" />
-          <span className="login-sun" />
-          <span className="login-books"><i /><i /><i /></span>
-          <span className="login-spark">✳</span>
-          <span className="login-leaf">♧</span>
-        </div>
-        <span className="login-side-footer">A brighter way to learn, every day.</span>
-      </section>
-      <section className="login-form-side">
-        <div className="login-form-wrap">
-          <span className="login-mobile-mark"><GraduationCap size={22} /></span>
-          <p className="eyebrow">YOUR LEARNING SPACE</p>
-          <h2>{forgot ? 'Reset your password' : 'Welcome back'}</h2>
-          <p className="login-subtitle">
-            {forgot ? 'Enter your school ID or email for reset instructions.' : 'Sign in to pick up where your curiosity left off.'}
+
+        <div className="showcase-content">
+          <div className="showcase-badge">
+            <Sparkles size={14} />
+            <span>Academic Session 2026–27</span>
+          </div>
+
+          <h2 className="showcase-headline">
+            Where curiosity grows into greatness.
+          </h2>
+
+          <p className="showcase-subtext">
+            Step into New Ellinium School’s unified portal. Seamlessly manage your class schedule,
+            homework submissions, examinations, and vibrant school community activities.
           </p>
-          <form onSubmit={submit}>
-            <label htmlFor="school-identifier">School ID or email</label>
-            <input
-              id="school-identifier"
-              autoComplete="username"
-              value={identifier}
-              onChange={(event) => setIdentifier(event.target.value)}
-              placeholder="e.g. SPS-2026-0842"
-              required
-            />
+
+          <div className="showcase-feature-list">
+            <div className="showcase-feature-item">
+              <span className="feature-check-icon"><CheckCircle2 size={14} /></span>
+              <span>Personalized student timetable & real-time attendance</span>
+            </div>
+            <div className="showcase-feature-item">
+              <span className="feature-check-icon"><CheckCircle2 size={14} /></span>
+              <span>Fast online homework submission with teacher grading</span>
+            </div>
+            <div className="showcase-feature-item">
+              <span className="feature-check-icon"><CheckCircle2 size={14} /></span>
+              <span>Examinations datesheet, syllabus & published report cards</span>
+            </div>
+            <div className="showcase-feature-item">
+              <span className="feature-check-icon"><CheckCircle2 size={14} /></span>
+              <span>Friday Special morning assembly & inter-house competitions</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="showcase-footer">
+          <span>© 2026 New Ellinium School</span>
+          <span>Knowledge · Integrity · Innovation</span>
+        </div>
+      </section>
+
+      {/* Right Form Area */}
+      <section className="login-form-area">
+        <div className="login-form-card">
+          <div className="form-header-group">
+            <span className="login-kicker-tag">PORTAL ACCESS</span>
+            <h2>{forgot ? 'Reset Password' : 'Sign in to your account'}</h2>
+            <p>
+              {forgot
+                ? 'Enter your school ID or registered email to receive recovery instructions.'
+                : 'Welcome to New Ellinium School. Sign in with your credentials or explore via demo.'}
+            </p>
+          </div>
+
+          {error && <div className="alert-box error">{error}</div>}
+          {message && <div className="alert-box success">{message}</div>}
+
+          <form className="auth-form" onSubmit={handleSubmit}>
+            <div className="form-field-wrapper">
+              <label htmlFor="school-id-input">School ID or Registered Email</label>
+              <input
+                id="school-id-input"
+                className="auth-input"
+                autoComplete="username"
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
+                placeholder="e.g. NES-2026-0842 or student@ellinium.edu"
+                required
+              />
+            </div>
+
             {!forgot && (
-              <div className="password-field">
-                <label htmlFor="account-password">Password</label>
+              <div className="form-field-wrapper">
+                <label htmlFor="password-input">Password</label>
                 <input
-                  id="account-password"
+                  id="password-input"
+                  className="auth-input"
                   type="password"
                   autoComplete="current-password"
                   value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  placeholder="Enter your password"
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your secret password"
                   required
                 />
               </div>
             )}
-            {error && <p className="login-error" role="alert">{error}</p>}
-            {message && <p className="login-message" role="status">{message}</p>}
-            <button className="login-submit" type="submit" disabled={loading}>
-              {loading ? 'Please wait…' : forgot ? 'Send reset instructions' : 'Sign in'}
-              <ChevronRight size={16} />
+
+            <button className="auth-submit-btn" type="submit" disabled={loading}>
+              {loading ? (
+                <span>Authenticating…</span>
+              ) : forgot ? (
+                <>
+                  <span>Send Recovery Instructions</span>
+                  <ArrowRight size={16} />
+                </>
+              ) : (
+                <>
+                  <span>Sign In to Portal</span>
+                  <ArrowRight size={16} />
+                </>
+              )}
             </button>
           </form>
-          <button className="forgot-link" onClick={() => { setForgot(!forgot); setError(''); setMessage('') }}>
-            {forgot ? 'Back to sign in' : 'Forgot password?'}
+
+          <button
+            type="button"
+            className="toggle-forgot-link"
+            onClick={() => {
+              setForgot(!forgot)
+              setError('')
+              setMessage('')
+            }}
+          >
+            {forgot ? 'Return to regular sign in' : 'Forgot your password?'}
           </button>
-          <div className="demo-divider"><span />or explore a demo<span /></div>
-          <div className="demo-buttons">
-            <button onClick={() => enterDemo('Student')}>
-              <span className="demo-avatar student-demo">AR</span>
-              <span>Student<small>Aarav · Class 8B</small></span>
-              <ChevronRight size={15} />
+
+          <div className="demo-section-divider">or explore instant demo</div>
+
+          <div className="demo-role-grid">
+            <button
+              type="button"
+              className="demo-role-card"
+              onClick={() => enterDemo('Student')}
+            >
+              <div className="demo-role-avatar student">AR</div>
+              <div className="demo-role-info">
+                <strong>Student Experience</strong>
+                <small>Aarav Rao · Class 8-B (Science & Tech)</small>
+              </div>
+              <ChevronRight size={18} color="var(--text-muted)" />
             </button>
-            <button onClick={() => enterDemo('Teacher')}>
-              <span className="demo-avatar teacher-demo">MK</span>
-              <span>Teacher<small>Maya · Mathematics</small></span>
-              <ChevronRight size={15} />
+
+            <button
+              type="button"
+              className="demo-role-card"
+              onClick={() => enterDemo('Teacher')}
+            >
+              <div className="demo-role-avatar teacher">MK</div>
+              <div className="demo-role-info">
+                <strong>Faculty & Teacher Space</strong>
+                <small>Ms. Maya Kapoor · Mathematics Department</small>
+              </div>
+              <ChevronRight size={18} color="var(--text-muted)" />
             </button>
-            <button onClick={() => enterDemo('Admin')}>
-              <span className="demo-avatar admin-demo">AD</span>
-              <span>Admin<small>School administrator</small></span>
-              <ChevronRight size={15} />
+
+            <button
+              type="button"
+              className="demo-role-card"
+              onClick={() => enterDemo('Admin')}
+            >
+              <div className="demo-role-avatar admin">AD</div>
+              <div className="demo-role-info">
+                <strong>School Administration</strong>
+                <small>Principal & Administrative Office</small>
+              </div>
+              <ChevronRight size={18} color="var(--text-muted)" />
             </button>
           </div>
-          <p className="demo-disclaimer">Demo mode uses sample data and does not authenticate with the school API.</p>
+
+          <p className="demo-disclaimer-text">
+            Demo roles allow full interactive exploration of all New Ellinium School features.
+          </p>
         </div>
-        <footer className="login-footer">© 2026 Sunrise Public School <span>Privacy · Help</span></footer>
       </section>
-    </main>
+    </div>
   )
 }

@@ -2,7 +2,10 @@ import 'dotenv/config'
 import bcrypt from 'bcryptjs'
 import { Pool } from 'pg'
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL })
+const pool = new Pool({ 
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
+})
 const demoPassword = 'Campus2026!'
 const passwordHash = await bcrypt.hash(demoPassword, 12)
 
@@ -52,8 +55,8 @@ try {
       VALUES ($1, $2, $3, 'Fractions practice — worksheet 4', 'Complete questions 1–12 and show your working.', '2026-10-16 20:00:00+05:30', 10)
       ON CONFLICT (class_id, subject_id, title, due_at) DO NOTHING`, [classId, math.rows[0].id, teacher.rows[0].id])
     const assembly = await client.query<{ id: string }>(`INSERT INTO friday_assemblies (school_id, title, theme, thought_of_day, assembly_date, starts_at, status, created_by)
-      VALUES ($1, 'Friday Special Morning', 'Kindness costs nothing, shares everything.', 'One small act can make someone’s whole day.', '2026-10-17', '08:00', 'published', $2)
-      ON CONFLICT (school_id, assembly_date) DO UPDATE SET title = EXCLUDED.title RETURNING id`, [schoolId, teacher.rows[0].id])
+      VALUES ($1, 'Friday Special Morning', 'Kindness costs nothing, shares everything.', $2, '2026-10-17', '08:00', 'published', $3)
+      ON CONFLICT (school_id, assembly_date) DO UPDATE SET title = EXCLUDED.title RETURNING id`, [schoolId, 'One small act can make someone\'s whole day.', teacher.rows[0].id])
     await client.query(`INSERT INTO assembly_items (assembly_id, item_type, title, description, presenter, starts_at, sort_order)
       SELECT $1, item_type, title, description, presenter, starts_at::time, sort_order FROM (VALUES
         ('speech', 'Thought of the day', 'Kindness costs nothing, shares everything.', 'Aarav Rao, Class 8B', '08:05', 1),
